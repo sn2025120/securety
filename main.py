@@ -20,25 +20,6 @@ if "captcha_code" not in st.session_state:
 if "captcha_failed" not in st.session_state:
     st.session_state.captcha_failed = False
 
-# --- MBTI 진로 데이터 ---
-mbti_career = {
-    "INTJ": ["전략 컨설턴트 🧠", "데이터 과학자 📊", "연구원 🔬"],
-    "INTP": ["개발자 👨‍💻", "이론물리학자 📚", "UX 디자이너 🎨"],
-    "ENTJ": ["CEO 💼", "프로젝트 매니저 📂", "변호사 ⚖️"],
-    "ENTP": ["창업가 🚀", "마케터 📢", "기획자 🧩"],
-    "INFJ": ["상담사 🧑‍⚕️", "작가 ✍️", "사회복지사 💗"],
-    "INFP": ["예술가 🎨", "심리학자 🧠", "시나리오 작가 🎬"],
-    "ENFJ": ["교사 👩‍🏫", "HR 전문가 🧑‍💼", "컨설턴트 📘"],
-    "ENFP": ["방송인 🎤", "홍보 담당자 🗣️", "여행 가이드 🌍"],
-    "ISTJ": ["회계사 📒", "공무원 🏛️", "엔지니어 🛠️"],
-    "ISFJ": ["간호사 🏥", "초등교사 📚", "사서 📖"],
-    "ESTJ": ["경영 관리자 🧾", "군인 🪖", "재무 담당자 💹"],
-    "ESFJ": ["이벤트 플래너 🎉", "세일즈 매니저 🛍️", "교육 코디네이터 📆"],
-    "ISTP": ["기계공 🛠️", "파일럿 ✈️", "보안 전문가 🕵️"],
-    "ISFP": ["플로리스트 🌸", "사진작가 📸", "헤어 디자이너 💇‍♀️"],
-    "ESTP": ["응급 구조사 🚑", "운동 트레이너 🏋️", "여행 작가 ✈️"],
-    "ESFP": ["배우 🎭", "MC 🎙️", "패션 디자이너 👗"]
-}
 
 
 # --- STEP 1: 보안코드 입력 ---
@@ -90,19 +71,4 @@ elif st.session_state.step == "consent":
             st.error("⚠️ 개인정보 이용에 동의해야 다음 단계로 넘어갈 수 있습니다.")
 
 
-# --- STEP 4: MBTI 진로 추천 ---
-elif st.session_state.step == "mbti":
-    st.title("💼 MBTI 진로 추천 웹앱")
-    st.write("당신의 **MBTI** 유형을 선택하면, 어울리는 진로를 추천해드릴게요! 😊")
 
-    selected_mbti = st.selectbox("당신의 MBTI를 선택해주세요:", [""] + list(mbti_career.keys()))
-
-    if selected_mbti != "":
-        st.markdown("---")
-        st.subheader(f"🎯 {selected_mbti} 유형에게 어울리는 진로는?")
-        for job in mbti_career[selected_mbti]:
-            st.markdown(f"- {job}")
-        st.markdown("---")
-        st.success("당신의 강점을 살릴 수 있는 분야를 탐색해보세요! 🚀")
-
-    st.caption("ⓒ 2025 진로탐색 EduApp - MBTI 기반 추천 시스템 🧭")
