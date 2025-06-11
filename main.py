@@ -72,16 +72,13 @@ if st.session_state.step == "auth":
 
 
 # --- STEP 2: 시각 CAPTCHA ---
+
 elif st.session_state.step == "captcha":
     st.title("🧩 시각적 CAPTCHA 인증")
 
-    image = ImageCaptcha()
     captcha_text = st.session_state.captcha_code
-    data = image.generate(captcha_text)
-    image_data = base64.b64encode(data.read()).decode("utf-8")
-
-    st.markdown("이미지에 보이는 문자를 정확히 입력해주세요.")
-    st.image(f"data:image/png;base64,{image_data}")
+    captcha_img = generate_captcha_image(captcha_text)
+    st.image(captcha_img, width=150)
 
     captcha_input = st.text_input("CAPTCHA 입력", max_chars=5)
 
@@ -89,10 +86,10 @@ elif st.session_state.step == "captcha":
         if captcha_input.strip().upper() == captcha_text:
             st.session_state.step = "consent"
         else:
-            st.session_state.captcha_failed = True
             st.error("❌ CAPTCHA 오류. 앱을 종료합니다.")
             st.markdown("<script>window.close();</script>", unsafe_allow_html=True)
             st.stop()
+
 
 
 # --- STEP 3: 개인정보 동의 ---
