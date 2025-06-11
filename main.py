@@ -1,7 +1,9 @@
 import streamlit as st
 import random
 import string
-import time
+import base64
+from captcha.image import ImageCaptcha
+from io import BytesIO
 
 # --- 페이지 설정 ---
 st.set_page_config(page_title="MBTI 진로 추천", page_icon="🧭", layout="centered")
@@ -10,15 +12,15 @@ st.set_page_config(page_title="MBTI 진로 추천", page_icon="🧭", layout="ce
 if "step" not in st.session_state:
     st.session_state.step = "auth"
 if "auth_code" not in st.session_state:
-    st.session_state.auth_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+    st.session_state.auth_code = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
 if "auth_attempts" not in st.session_state:
     st.session_state.auth_attempts = 0
-if "auth_success" not in st.session_state:
-    st.session_state.auth_success = False
-if "agreed" not in st.session_state:
-    st.session_state.agreed = False
+if "captcha_code" not in st.session_state:
+    st.session_state.captcha_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
+if "captcha_failed" not in st.session_state:
+    st.session_state.captcha_failed = False
 
-# --- 진로 추천 데이터 ---
+# --- MBTI 진로 데이터 ---
 mbti_career = {
     "INTJ": ["전략 컨설턴트 🧠", "데이터 과학자 📊", "연구원 🔬"],
     "INTP": ["개발자 👨‍💻", "이론물리학자 📚", "UX 디자이너 🎨"],
@@ -39,39 +41,76 @@ mbti_career = {
 }
 
 
-# --- STEP 1: 보안코드 인증 ---
+# --- STEP 1: 보안코드 입력 ---
 if st.session_state.step == "auth":
     st.title("🔐 보안 인증")
-    st.write("아래 보안코드를 정확히 입력하십시요.")
-    st.code(st.session_state.auth_code, language="text")
+    st.write("아래 보안코드를 정확히 입력해주세요 (대/소문자 구분)")
+
+    st.markdown(
+        f"""
+        <div style="user-select: none; font-family: monospace; font-size: 1.5em; background-color: #f1f3f5; padding: 10px; border-radius: 5px;">
+            {st.session_state.auth_code}
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
     user_input = st.text_input("보안코드 입력", max_chars=8)
 
     if st.button("확인"):
-        if user_input.strip().upper() == st.session_state.auth_code:
-            st.session_state.auth_success = True
-            st.session_state.step = "consent"
+        if user_input == st.session_state.auth_code:
+            st.session_state.step = "captcha"
         else:
             st.session_state.auth_attempts += 1
-            if st.session_state.auth_attempts >= 5:
-                st.error("❌ 보안코드를 5회 틀렸습니다. 앱을 종료합니다.")
+            if st.session_state.auth_attempts >= 3:
+                st.error("❌ 보안코드를 3회 틀렸습니다. 앱을 종료합니다.")
+                st.markdown("<script>window.close();</script>", unsafe_allow_html=True)
                 st.stop()
             else:
                 st.warning(f"❗ {st.session_state.auth_attempts}번째 오류입니다. 새로운 보안코드가 발급되었습니다.")
-                st.session_state.auth_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+                st.session_state.auth_code = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
 
-# --- STEP 2: 개인정보 동의 ---
+
+# --- STEP 2: 시각 CAPTCHA ---
+elif st.session_state.step == "captcha":
+    st.title("🧩 시각적 CAPTCHA 인증")
+
+    image = ImageCaptcha()
+    captcha_text = st.session_state.captcha_code
+    data = image.generate(captcha_text)
+    image_data = base64.b64encode(data.read()).decode("utf-8")
+
+    st.markdown("이미지에 보이는 문자를 정확히 입력해주세요.")
+    st.image(f"data:image/png;base64,{image_data}")
+
+    captcha_input = st.text_input("CAPTCHA 입력", max_chars=5)
+
+    if st.button("다음"):
+        if captcha_input.strip().upper() == captcha_text:
+            st.session_state.step = "consent"
+        else:
+            st.session_state.captcha_failed = True
+            st.error("❌ CAPTCHA 오류. 앱을 종료합니다.")
+            st.markdown("<script>window.close();</script>", unsafe_allow_html=True)
+            st.stop()
+
+
+# --- STEP 3: 개인정보 동의 ---
 elif st.session_state.step == "consent":
-    st.title("📄 개인정보 이용 동의 안내")
-    st.write("서비스를 이용하기 위해 아래 항목에 동의해주세요. 거절할수 있으며, 불이익이 발생할수 있습니다.")
+    st.title("📄 개인정보 이용 동의")
+    st.write("서비스를 사용하기 위해 아래 항목에 동의해주세요.")
 
-    agree = st.checkbox("개인정보 수집 및 이용에 동의")
+    agree = st.checkbox("✅ 개인정보 수집 및 이용에 동의합니다. (필수)")
+    signature = st.text_input("✍️ 전자서명 (선택사항)", placeholder="이름 또는 서명 입력")
 
-    if agree:
-        st.session_state.agreed = True
-        st.session_state.step = "mbti"
+    if st.button("확인"):
+        if agree:
+            st.session_state.step = "mbti"
+        else:
+            st.error("⚠️ 개인정보 이용에 동의해야 다음 단계로 넘어갈 수 있습니다.")
 
-# --- STEP 3: MBTI 진로 추천 ---
+
+# --- STEP 4: MBTI 진로 추천 ---
 elif st.session_state.step == "mbti":
     st.title("💼 MBTI 진로 추천 웹앱")
     st.write("당신의 **MBTI** 유형을 선택하면, 어울리는 진로를 추천해드릴게요! 😊")
