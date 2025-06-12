@@ -46,16 +46,16 @@ if st.session_state.step == "auth":
     if st.button("확인"):
         if user_input == st.session_state.auth_code:
             st.session_state.step = "consent"
+            st.success("✅ 보안코드 인증 완료! 개인정보 동의로 넘어갑니다.")
         else:
             st.session_state.auth_attempts += 1
             if st.session_state.auth_attempts >= 3:
                 st.error("❌ 보안코드를 3회 틀렸습니다. 앱을 종료합니다.")
-                st.markdown("<script>window.close();</script>", unsafe_allow_html=True)
+                # 앱을 종료하는 대신 종료 메시지를 표시하거나, 다른 액션을 취할 수 있습니다.
                 st.stop()
             else:
                 st.warning(f"❗ {st.session_state.auth_attempts}번째 오류입니다. 새로운 보안코드가 발급되었습니다.")
                 st.session_state.auth_code = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
-
 
 # --- STEP 2: 개인정보 동의 ---
 elif st.session_state.step == "consent":
@@ -71,7 +71,6 @@ elif st.session_state.step == "consent":
         else:
             st.session_state.step = "done"
             st.success("✅ 동의 완료! 다음 단계로 넘어갑니다.")
-
 
 # --- STEP 3: 완료 화면 예시 ---
 elif st.session_state.step == "done":
