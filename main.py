@@ -39,6 +39,17 @@ st.markdown(
         width: fit-content;
         margin-bottom: 20px;
     }
+
+    .notification {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        background-color: #FFEB3B;
+        padding: 10px;
+        border-radius: 5px;
+        font-weight: bold;
+        z-index: 9999;
+    }
     </style>
     """, unsafe_allow_html=True
 )
@@ -50,16 +61,33 @@ if st.session_state.step == "auth":
 
     st.markdown(f'<div class="no-select">{st.session_state.auth_code}</div>', unsafe_allow_html=True)
 
-    user_input = st.text_input("보안코드 입력", max_chars=8, key="auth_code_input", on_change=None)
+    # 보안 코드 입력 필드
+    user_input = st.text_input("보안코드 입력", max_chars=8, key="auth_code_input")
 
-    # 'Enter'로 제출하지 않게 유도하기 위해 button을 사용
+    # '확인' 버튼 추가
     submit_button = st.button("확인")
 
+    # 버튼 클릭 시 처리
     if submit_button:
         if user_input == st.session_state.auth_code:
             st.session_state.step = "consent"
             st.success("✅ 보안코드 인증 완료! 개인정보 동의로 넘어갑니다.")
-            time.sleep(3)  # 3초 동안 문구를 띄운 후 자동으로 넘어갑니다.
+            time.sleep(2)  # 2초 후 알림 띄우기
+
+            # 상단 오른쪽에 알림 메시지 띄우기
+            st.markdown('<div class="notification">보안을 위해 새 window 창으로 이동됨.</div>', unsafe_allow_html=True)
+            time.sleep(4)  # 4초 후 새 창 열기
+
+            # 새 창을 열고 개인정보 동의 페이지로 이동
+            st.markdown(
+                f"""
+                <script>
+                    setTimeout(function() {{
+                        window.open("https://your-personal-info-page-url.com", "_blank");
+                    }}, 4000);  // 4초 후 새 창 열기
+                </script>
+                """, unsafe_allow_html=True
+            )
         else:
             st.session_state.auth_attempts += 1
             if st.session_state.auth_attempts >= 3:
@@ -77,10 +105,10 @@ elif st.session_state.step == "consent":
     agree = st.checkbox("✅ 개인정보 수집 및 이용에 동의합니다. (필수)")
     signature = st.text_input("✍️ 전자서명 (선택사항)", placeholder="이름 또는 서명 입력")
 
-    if agree:  # 동의가 되면 바로 다음 페이지로 넘기기
+    if agree:
         st.session_state.step = "done"
         st.success("✅ 동의 완료! 다음 단계로 넘어갑니다.")
-        time.sleep(3)  # 3초 동안 문구를 띄운 후 자동으로 넘어갑니다.
+        time.sleep(3)  # 3초 후 자동으로 넘어갑니다.
 
 # --- STEP 3: 완료 화면 예시 ---
 elif st.session_state.step == "done":
