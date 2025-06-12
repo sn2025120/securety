@@ -50,7 +50,7 @@ if st.session_state.step == "auth":
 
     st.markdown(f'<div class="no-select">{st.session_state.auth_code}</div>', unsafe_allow_html=True)
 
-    user_input = st.text_input("보안코드 입력", max_chars=8, key="auth_code_input")
+    user_input = st.text_input("보안코드 입력", max_chars=8, key="auth_code_input", on_change=None)
 
     # 'Enter'로 제출하지 않게 유도하기 위해 button을 사용
     submit_button = st.button("확인")
@@ -77,13 +77,10 @@ elif st.session_state.step == "consent":
     agree = st.checkbox("✅ 개인정보 수집 및 이용에 동의합니다. (필수)")
     signature = st.text_input("✍️ 전자서명 (선택사항)", placeholder="이름 또는 서명 입력")
 
-    if st.button("확인"):
-        if not agree:
-            st.error("⚠️ 개인정보 이용에 동의해야 다음 단계로 넘어갈 수 있습니다.")
-        else:
-            st.session_state.step = "done"
-            st.success("✅ 동의 완료! 다음 단계로 넘어갑니다.")
-            time.sleep(3)  # 3초 동안 문구를 띄운 후 자동으로 넘어갑니다.
+    if agree:  # 동의가 되면 바로 다음 페이지로 넘기기
+        st.session_state.step = "done"
+        st.success("✅ 동의 완료! 다음 단계로 넘어갑니다.")
+        time.sleep(3)  # 3초 동안 문구를 띄운 후 자동으로 넘어갑니다.
 
 # --- STEP 3: 완료 화면 예시 ---
 elif st.session_state.step == "done":
