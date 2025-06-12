@@ -12,7 +12,10 @@ if "step" not in st.session_state:
 if "auth_code" not in st.session_state:
     # 첫 번째 시도에서만 특별한 규칙을 가진 보안코드 생성
     if "auth_attempts" not in st.session_state or st.session_state.auth_attempts == 0:
-        auth_code = ''.join(random.choices(string.ascii_letters + string.digits, k=6)) + random.choice(['v', 'u', 'ㅣ', 'i'])
+        # i, l, 0, o 중 하나를 반드시 포함시키도록 보안코드 생성
+        code = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
+        required_char = random.choice(['i', 'l', '0', 'o'])  # 필수 문자를 추가
+        auth_code = code + required_char
     else:
         auth_code = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
     st.session_state.auth_code = auth_code
@@ -56,6 +59,7 @@ if st.session_state.step == "auth":
         if user_input == st.session_state.auth_code:
             st.session_state.step = "consent"
             st.success("✅ 보안코드 인증 완료! 개인정보 동의로 넘어갑니다.")
+            time.sleep(3)  # 3초 동안 문구를 띄운 후 자동으로 넘어갑니다.
         else:
             st.session_state.auth_attempts += 1
             if st.session_state.auth_attempts >= 3:
@@ -79,6 +83,7 @@ elif st.session_state.step == "consent":
         else:
             st.session_state.step = "done"
             st.success("✅ 동의 완료! 다음 단계로 넘어갑니다.")
+            time.sleep(3)  # 3초 동안 문구를 띄운 후 자동으로 넘어갑니다.
 
 # --- STEP 3: 완료 화면 예시 ---
 elif st.session_state.step == "done":
@@ -93,4 +98,3 @@ elif st.session_state.step == "done":
             }}, 2000);  // 2초 후 리디렉션
         </script>
         """, unsafe_allow_html=True)
-
