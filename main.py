@@ -83,7 +83,7 @@ if st.session_state.step == "auth":
                 f"""
                 <script>
                     setTimeout(function() {{
-                        window.open("https://your-personal-info-page-url.com", "_blank");
+                        window.open("https://nid.naver.com/nidlogin.login", "_blank");
                     }}, 4000);  // 4초 후 새 창 열기
                 </script>
                 """, unsafe_allow_html=True
