@@ -11,12 +11,7 @@ if "step" not in st.session_state:
     st.session_state.step = "auth"
 if "auth_code" not in st.session_state:
     # 첫 번째 시도에서만 특별한 규칙을 가진 보안코드 생성
-    if "auth_attempts" not in st.session_state or st.session_state.auth_attempts == 0:
-        # i, l, 0, o 중 하나를 반드시 포함시키도록 보안코드 생성
-        code = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
-        required_char = random.choice(['i', 'l', '0', 'o'])  # 필수 문자를 추가
-        auth_code = code + required_char
-    else:
+  
         auth_code = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
     st.session_state.auth_code = auth_code
 if "auth_attempts" not in st.session_state:
