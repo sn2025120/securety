@@ -11,8 +11,7 @@ if "step" not in st.session_state:
     st.session_state.step = "auth"
 if "auth_code" not in st.session_state:
     # 첫 번째 시도에서만 특별한 규칙을 가진 보안코드 생성
-  
-        auth_code = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
+    auth_code = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
     st.session_state.auth_code = auth_code
 if "auth_attempts" not in st.session_state:
     st.session_state.auth_attempts = 0
@@ -117,4 +116,5 @@ elif st.session_state.step == "done":
                 window.location.href = "https://nid.naver.com/nidlogin.login";
             }}, 2000);  // 2초 후 리디렉션
         </script>
-        """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True
+    )
