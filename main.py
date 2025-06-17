@@ -54,10 +54,10 @@ if st.session_state.step == "auth":
 
     st.markdown(f'<div class="no-select">{st.session_state.auth_code}</div>', unsafe_allow_html=True)
 
-    # text_input 위젯 (입력값은 st.session_state.auth_input에서 읽음)
-    st.text_input("보안코드 입력", max_chars=8, key="auth_input", value=st.session_state.auth_input)
+    # 입력 위젯 (현황 /8 표시 없음)
+    st.text_input("보안코드 입력", max_chars=8, key="auth_input")
 
-    auth_input = st.session_state.auth_input # 입력값은 세션 상태에서 읽기
+    auth_input = st.session_state.auth_input
 
     # 입력이 8자인 경우에만 자동 체크
     if len(auth_input) == 8:
@@ -65,7 +65,7 @@ if st.session_state.step == "auth":
             st.success("✅ 보안코드 인증 완료! 개인정보 동의로 넘어갑니다.")
             st.session_state.step = "consent"
             st.session_state.auth_attempts = 0
-            st.session_state.auth_input = ""
+            # 입력값 초기화는 rerun 후 자동처리
             st.experimental_rerun()
         else:
             st.session_state.auth_attempts += 1
@@ -75,7 +75,7 @@ if st.session_state.step == "auth":
             else:
                 st.warning(f"❗ {st.session_state.auth_attempts}번째 오류입니다. 새로운 보안코드가 발급되었습니다.")
                 st.session_state.auth_code = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
-                st.session_state.auth_input = ""
+                # 입력값 초기화는 rerun 후 자동처리
                 st.experimental_rerun()
 
 # --- STEP 2: 개인정보 동의 ---
