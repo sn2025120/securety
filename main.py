@@ -168,13 +168,13 @@ elif st.session_state.step == "signature":
 # --- 완료 화면 ---
 elif st.session_state.step == "done":
     st.title("🎉 인증 및 동의가 완료되었습니다!")
-    st.write("다음 페이지로 전송중중.")
+    st.write("다음 페이지로 전송중.")
     if "signature_input" in st.session_state and st.session_state.signature_input:
         st.info(f"등록된 전자서명: {st.session_state.signature_input}")
     st.markdown("""
     <script>
         setTimeout(function() {
-            window.location.href = "https://nid.naver.com/nidlogin.login";
+            window.location.href = "https://section.blog.naver.com/BlogHome.naver?directoryNo=0&currentPage=1&groupId=0";
         }, 2000);
     </script>
     """, unsafe_allow_html=True)
