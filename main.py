@@ -121,7 +121,7 @@ elif st.session_state.step == "auth":
         else:
             st.session_state.auth_attempts += 1
             if st.session_state.auth_attempts >= 3:
-                st.error("❌ 보안코드를 3회 틀렸습니다. 앱을 중지지합니다.")
+                st.error("❌ 보안코드를 3회 틀렸습니다. 앱을 중지합니다.")
                 st.stop()
             else:
                 st.warning(f"❗ {st.session_state.auth_attempts}번째 오류입니다. 새로운 보안코드가 발급되었습니다.")
