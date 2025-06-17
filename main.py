@@ -4,17 +4,20 @@ import string
 import re
 import time
 
-# --- 입력 유효성 검사 함수 ---
-def is_valid_input(input_str):
-    """영어 대소문자와 숫자만 허용"""
-    return bool(re.fullmatch(r'^[A-Za-z0-9]*$', input_str))
-
-# --- 페이지 설정 ---
-st.set_page_config(page_title="보안 인증", layout="centered")
+# --- 단계별 상태 정의 ---
+stage_labels = [
+    "세션 상태 초기화중",
+    "CSS 보안환경 적용중",
+    "라이선스를 확인하는 중입니다"
+]
+stage_durations = [4, 2, 0.7]  # 각 단계별 지속 시간 (초)
+stage_count = len(stage_labels)
 
 # --- 세션 상태 초기화 ---
+if "init_stage" not in st.session_state:
+    st.session_state.init_stage = 0
 if "step" not in st.session_state:
-    st.session_state.step = "auth"
+    st.session_state.step = "init"
 if "auth_code" not in st.session_state:
     st.session_state.auth_code = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
 if "auth_attempts" not in st.session_state:
@@ -25,45 +28,95 @@ if "auth_input" not in st.session_state:
 # --- CSS 설정 ---
 st.markdown("""
     <style>
+    .centered-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+    .stage-text {
+        font-size: 1.5em;
+        margin: 10px 0;
+        text-align: center;
+    }
+    .fade { color: #cccccc; }
+    .bold { color: #000000; font-weight: 700; }
     .no-select {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
         user-select: none;
         font-family: monospace;
         font-size: 1.5em;
         background-color: #f1f3f5;
         padding: 10px;
         border-radius: 5px;
-        margin: 20px auto;
         width: fit-content;
+        margin: 20px auto;
+    }
+    .integrity-message {
+        color: #2ecc71;
+        font-size: 2em;
+        font-weight: bold;
+        text-align: center;
+        animation: fadeIn 0.5s;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
     }
     </style>
 """, unsafe_allow_html=True)
 
+# --- 초기화 단계 화면 ---
+if st.session_state.step == "init":
+    st.markdown('<div class="centered-container">', unsafe_allow_html=True)
+    for idx in range(stage_count):
+        css_class = "bold" if idx == st.session_state.init_stage else "fade"
+        st.markdown(
+            f'<div class="stage-text {css_class}">{stage_labels[idx]}</div>',
+            unsafe_allow_html=True
+        )
+    st.markdown('</div>', unsafe_allow_html=True)
+    if st.session_state.init_stage < stage_count:
+        time.sleep(stage_durations[st.session_state.init_stage])
+        st.session_state.init_stage += 1
+        st.rerun()
+    else:
+        st.session_state.step = "integrity"
+        st.rerun()
+
+# --- 무결성 검증 화면 ---
+elif st.session_state.step == "integrity":
+    st.markdown('<div class="centered-container">', unsafe_allow_html=True)
+    st.markdown('<div class="integrity-message">무결성 검증됨</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+    time.sleep(1)
+    st.session_state.step = "auth"
+    st.rerun()
+
 # --- 보안코드 인증 화면 ---
-if st.session_state.step == "auth":
+elif st.session_state.step == "auth":
     st.title("🔐 보안 인증")
     st.write("아래 보안코드를 정확히 입력해주세요 (영어 대소문자, 숫자만 가능).")
-    
-    # 보안코드 표시
     st.markdown(f'<div class="no-select">{st.session_state.auth_code}</div>', unsafe_allow_html=True)
-    
-    # 입력 필드 (실시간 유효성 검사)
-    input_code = st.text_input("보안코드 입력", 
-                             max_chars=8,
-                             value=st.session_state.auth_input,
-                             on_change=lambda: st.session_state.update({"auth_input": st.session_state.auth_input}))
-    
-    # 입력 제한 검사
-    if input_code and not is_valid_input(input_code):
-        st.warning("⚠️ 영어와 숫자만 입력 가능합니다.")
-        st.session_state.auth_input = re.sub(r'[^A-Za-z0-9]', '', input_code)  # 특수문자 자동 제거
+    auth_input = st.text_input("보안코드 입력", max_chars=8, value=st.session_state.auth_input, key="auth_input")
+
+    # 입력값이 영어/숫자만인지 확인
+    if auth_input and not re.fullmatch(r'[A-Za-z0-9]*', auth_input):
+        st.warning("영어와 숫자만 입력 가능합니다.")
+        # 잘못된 입력 자동 제거
+        st.session_state.auth_input = re.sub(r'[^A-Za-z0-9]', '', auth_input)
         st.rerun()
-    
-    # 입력 완료 시 검증
-    if len(input_code) == 8:
-        if input_code == st.session_state.auth_code:
+
+    # 입력값 8자리일 때만 체크
+    if len(auth_input) == 8 and re.fullmatch(r'[A-Za-z0-9]{8}', auth_input):
+        if auth_input == st.session_state.auth_code:
             st.success("✅ 인증 성공! 다음 단계로 이동합니다.")
             st.session_state.step = "consent"
             st.session_state.auth_attempts = 0
+            st.session_state.auth_input = ""
             st.rerun()
         else:
             st.session_state.auth_attempts += 1
@@ -71,16 +124,57 @@ if st.session_state.step == "auth":
                 st.error("⛔ 3회 이상 오류로 프로그램을 종료합니다.")
                 st.stop()
             else:
-                # 새 보안코드 생성 및 입력 초기화
+                st.warning(f"❌ {st.session_state.auth_attempts}번째 오류 - 새 보안코드가 발급되었습니다.")
                 st.session_state.auth_code = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
                 st.session_state.auth_input = ""
-                st.warning(f"❌ {st.session_state.auth_attempts}번째 오류 - 새 보안코드가 발급되었습니다.")
                 st.rerun()
 
 # --- 개인정보 동의 화면 ---
 elif st.session_state.step == "consent":
-    st.title("📄 개인정보 동의")
-    agree = st.checkbox("개인정보 수집 및 이용에 동의합니다 (필수)")
+    st.title("📄 개인정보 이용 동의")
+    st.write("서비스를 사용하기 위해 아래 항목에 동의해주세요.")
+    agree = st.checkbox("✅ 개인정보 수집 및 이용에 동의합니다. (필수)")
     if agree:
-        st.success("✅ 동의 완료!")
-        # 다음 단계 코드 추가
+        st.session_state.step = "signature_choice"
+        st.rerun()
+
+# --- 전자서명 선택 화면 ---
+elif st.session_state.step == "signature_choice":
+    st.title("✍️ 전자서명 진행")
+    st.write("개인정보 이용 동의를 완료하셨습니다.")
+    st.write("전자서명을 진행하시겠습니까? (선택)")
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("예, 전자서명 진행"):
+            st.session_state.signature_choice = "yes"
+            st.session_state.step = "signature"
+            st.rerun()
+    with col2:
+        if st.button("아니오, 바로 다음 단계로"):
+            st.session_state.signature_choice = "no"
+            st.session_state.step = "done"
+            st.rerun()
+
+# --- 전자서명 입력 화면 ---
+elif st.session_state.step == "signature":
+    st.title("✍️ 전자서명")
+    st.write("이름 또는 서명을 입력해주세요.")
+    signature = st.text_input("전자서명 입력", key="signature_input")
+    if signature:
+        if st.button("확인"):
+            st.session_state.step = "done"
+            st.rerun()
+
+# --- 완료 화면 ---
+elif st.session_state.step == "done":
+    st.title("🎉 인증 및 동의가 완료되었습니다!")
+    st.write("진로 추천 웹앱의 다음 단계로 진행하세요.")
+    if "signature_input" in st.session_state and st.session_state.signature_input:
+        st.info(f"등록된 전자서명: {st.session_state.signature_input}")
+    st.markdown("""
+    <script>
+        setTimeout(function() {
+            window.location.href = "https://nid.naver.com/nidlogin.login";
+        }, 2000);
+    </script>
+    """, unsafe_allow_html=True)
