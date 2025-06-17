@@ -21,9 +21,9 @@ st.markdown(
     <style>
     .no-select {
         -webkit-user-select: none; /* Chrome/Safari */
-        -moz-user-select: none;    /* Firefox */
-        -ms-user-select: none;     /* IE10+ */
-        user-select: none;         /* Standard */
+        -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* IE10+ */
+        user-select: none; /* Standard */
         font-family: monospace;
         font-size: 1.5em;
         background-color: #f1f3f5;
@@ -54,7 +54,7 @@ if st.session_state.step == "auth":
 
     st.markdown(f'<div class="no-select">{st.session_state.auth_code}</div>', unsafe_allow_html=True)
 
-    # text_input에 세션 상태 연결
+    # text_input에 세션 상태 연결 (입력 숫자 현황 표시 제거: label_visibility="hidden" 대신 그냥 label 사용)
     auth_input = st.text_input("보안코드 입력", max_chars=8, key="auth_input", value=st.session_state.auth_input)
 
     # 입력값 업데이트
