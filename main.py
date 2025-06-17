@@ -96,36 +96,37 @@ elif st.session_state.step == "integrity":
 # --- 보안코드 인증 화면 ---
 elif st.session_state.step == "auth":
     st.title("🔐 보안 인증")
-    st.write("아래 보안코드를 정확히 입력해주세요 (대/소문자 구분됨).")
-    
+    st.write("아래 보안코드를 정확히 입력해주세요 (대/소문자 구분됨). 입력 후 enter키를 입력.")
+
     # 보안코드 생성 (최초 1회)
     if "auth_code" not in st.session_state:
         st.session_state.auth_code = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
     if "auth_attempts" not in st.session_state:
         st.session_state.auth_attempts = 0
-    
+
     # 보안코드 표시 (드래그 방지)
     st.markdown(f'<div class="no-select">{st.session_state.auth_code}</div>', unsafe_allow_html=True)
-    
+
     # 입력 필드
     auth_input = st.text_input("보안코드 입력", max_chars=8, key="auth_input")
-    
+
     # 입력 검증
     if len(auth_input) == 8:
         if auth_input == st.session_state.auth_code:
-            st.success("✅ 보안코드 인증 완료! 개인정보 동의로 넘어갑니다.")
+            st.success("✅ 보안코드 인증 완료 개인정보 동의로 넘어갑니다.")
             st.session_state.step = "consent"
             st.session_state.auth_attempts = 0  # 성공시 시도횟수 초기화
+            st.session_state.pop("auth_input", None)  # 입력값 초기화
             st.rerun()
         else:
             st.session_state.auth_attempts += 1
             if st.session_state.auth_attempts >= 3:
-                st.error("❌ 보안코드를 3회 틀렸습니다. 앱을 종료합니다.")
+                st.error("❌ 보안코드를 3회 틀렸습니다. 앱을 중지지합니다.")
                 st.stop()
             else:
                 st.warning(f"❗ {st.session_state.auth_attempts}번째 오류입니다. 새로운 보안코드가 발급되었습니다.")
                 st.session_state.auth_code = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
-                st.session_state.auth_input = ""  # 입력창 초기화
+                st.session_state.pop("auth_input", None)  # 입력값 초기화
                 st.rerun()
 
 # --- 개인정보 동의 화면 ---
@@ -167,7 +168,7 @@ elif st.session_state.step == "signature":
 # --- 완료 화면 ---
 elif st.session_state.step == "done":
     st.title("🎉 인증 및 동의가 완료되었습니다!")
-    st.write("진로 추천 웹앱의 다음 단계로 진행하세요.")
+    st.write("다음 페이지로 전송중중.")
     if "signature_input" in st.session_state and st.session_state.signature_input:
         st.info(f"등록된 전자서명: {st.session_state.signature_input}")
     st.markdown("""
