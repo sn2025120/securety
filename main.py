@@ -65,7 +65,7 @@ if st.session_state.step == "auth":
             st.success("✅ 보안코드 인증 완료! 개인정보 동의로 넘어갑니다.")
             st.session_state.step = "consent"
             st.session_state.auth_attempts = 0
-            # 입력값 초기화는 rerun 후 자동처리
+            st.rerun() # <-- 수정(빨강): st.experimental_rerun()에서 st.rerun()으로 변경
         else:
             st.session_state.auth_attempts += 1
             if st.session_state.auth_attempts >= 3:
@@ -74,8 +74,7 @@ if st.session_state.step == "auth":
             else:
                 st.warning(f"❗ {st.session_state.auth_attempts}번째 오류입니다. 새로운 보안코드가 발급되었습니다.")
                 st.session_state.auth_code = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
-                # 입력값 초기화는 rerun 후 자동처리
-                st.experimental_rerun()
+                st.rerun() # <-- 수정(빨강): st.experimental_rerun()에서 st.rerun()으로 변경
 
 # --- STEP 2: 개인정보 동의 ---
 elif st.session_state.step == "consent":
@@ -88,7 +87,7 @@ elif st.session_state.step == "consent":
     if agree:
         st.success("✅ 동의 완료! 다음 단계로 넘어갑니다.")
         st.session_state.step = "done"
-        st.experimental_rerun()
+        st.rerun() # <-- 수정(빨강): st.experimental_rerun()에서 st.rerun()으로 변경
 
 # --- STEP 3: 완료 화면 ---
 elif st.session_state.step == "done":
