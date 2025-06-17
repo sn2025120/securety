@@ -66,7 +66,6 @@ if st.session_state.step == "auth":
             st.session_state.step = "consent"
             st.session_state.auth_attempts = 0
             # 입력값 초기화는 rerun 후 자동처리
-            st.experimental_rerun()
         else:
             st.session_state.auth_attempts += 1
             if st.session_state.auth_attempts >= 3:
