@@ -172,7 +172,7 @@ elif st.session_state.step == "signature":
 # --- 완료 화면 ---
 elif st.session_state.step == "done":
     st.title("🎉 인증 및 동의가 완료되었습니다!")
-    st.write("진로 추천 웹앱의 다음 단계로 진행하세요.")
+    st.write("환영합니다.")
     
     if "signature_input" in st.session_state and st.session_state.signature_input:
         st.info(f"등록된 전자서명: {st.session_state.signature_input}")
